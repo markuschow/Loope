@@ -16,7 +16,7 @@ protocol PlayLoopUseCase {
     func play(input: PlayLoopInput) -> Result<Void, Error>
     func stop()
     func setRate(_ rate: Float)
-    func loadAll() -> [Loop]
+    func loadAll() async throws -> [Loop]
 }
 
 final class PlayLoopUseCaseImpl: PlayLoopUseCase {
@@ -24,17 +24,17 @@ final class PlayLoopUseCaseImpl: PlayLoopUseCase {
     private let tempoProcessor: TempoProcessing
     private let loopRepository: LoopRepository
     
-    init(audioPlayer: AudioPlayer = AudioEngineService(),
-         tempoProcessor: TempoProcessing = TempoProcessor(),
-         loopRepository: LoopRepository = FileLoopRepository()) {
+    init(audioPlayer: AudioPlayer,
+         tempoProcessor: TempoProcessing,
+         loopRepository: LoopRepository) {
         
         self.audioPlayer = audioPlayer
         self.tempoProcessor = tempoProcessor
         self.loopRepository = loopRepository
     }
     
-    func loadAll() -> [Loop] {
-        return loopRepository.loadAll()
+    func loadAll() async throws -> [Loop] {
+        return try await loopRepository.loadAll()
     }
     
     func play(input: PlayLoopInput) -> Result<Void, Error> {

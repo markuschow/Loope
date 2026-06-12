@@ -10,7 +10,6 @@ import SwiftUI
 
 struct LoopPlayerView: View {
     @StateObject var viewModel: LoopPlayerViewModel
-    @State private var selectedID: Loop.ID?
 
     private let loopDirURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("Loops")
     
@@ -38,21 +37,14 @@ struct LoopPlayerView: View {
             
             Button("Load Demo Loop") {
                 viewModel.loadDemoLoop()
-                selectedID = viewModel.selectedLoopID
             }
             .buttonStyle(BorderedButtonStyle())
             
-            List(viewModel.loops, selection: $selectedID) { loop in
+            List(viewModel.loops, selection: $viewModel.selectedLoopID) { loop in
                 Text(loop.name)
-                    .tag(loop.id as Loop.ID?)
+                    .tag(loop.id)
             }
             .listStyle(SidebarListStyle())
-            .onChange(of: selectedID) { _, newValue in
-                viewModel.selectedLoopID = newValue
-            }
-            .onAppear() {
-                selectedID = viewModel.selectedLoopID
-            }
             
             HStack {
                 Button(action: viewModel.playSelectedLoop) {

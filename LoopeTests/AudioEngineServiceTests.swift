@@ -159,19 +159,3 @@ final class AudioEngineServiceTests: XCTestCase {
     }
 }
 
-final class MockAudioFileReader: AudioFileReader {
-    var bufferToReturn: AVAudioPCMBuffer?
-    var errorToThrow: Error?
-    
-    func read(for url: URL) throws -> AVAudioPCMBuffer {
-        if let error = errorToThrow {
-            throw error
-        }
-        
-        guard let buffer = bufferToReturn else {
-            throw AudioEngineError.invalidFileBuffer
-        }
-        
-        return buffer
-    }
-}

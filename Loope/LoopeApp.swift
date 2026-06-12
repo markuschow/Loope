@@ -13,7 +13,10 @@ struct LoopeApp: App {
     let loopPlayViewModel: LoopPlayerViewModel
     
     init() {
-        self.loopPlayUseCase = PlayLoopUseCaseImpl()
+        self.loopPlayUseCase = PlayLoopUseCaseImpl(audioPlayer: AudioEngineService(),
+                                                   tempoProcessor: TempoProcessor(),
+                                                   loopRepository: FileLoopRepository())
+        
         self.loopPlayViewModel = LoopPlayerViewModel(playLoopUseCase: loopPlayUseCase)
     }
     

@@ -10,13 +10,17 @@ import Combine
 import AppKit
 internal import UniformTypeIdentifiers
 
+@MainActor
 final class LoopPlayerViewModel: ObservableObject {
     @Published var loops: [Loop] = []
     @Published var selectedLoopID: Loop.ID? {
         didSet {
             if isPlaying {
                 stop()
-                playSelectedLoop()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: { [weak self] in
+                    guard let self = self else { return }                    
+                    playSelectedLoop()
+                })
             }
         }
     }
@@ -35,7 +39,8 @@ final class LoopPlayerViewModel: ObservableObject {
         
         self.playLoopUseCase = playLoopUseCase
         
-        loadLoops()
+        Task { await self.loadLoops() }
+        
     }
     
     // MARK: - File Import
@@ -107,7 +112,7 @@ final class LoopPlayerViewModel: ObservableObject {
                 guard let self = self else { return }
                 
                 // Force reload to pick up new file
-                self.loadLoops()
+                Task { await self.loadLoops() }
                                 
                 // Auto-select the newly added loop
                 if let newLoop = self.loops.first(where: { $0.url == destURL }) {
@@ -128,23 +133,28 @@ final class LoopPlayerViewModel: ObservableObject {
     
     // MARK: - Loop Management
     
-    func loadLoops() {
+    func loadLoops() async {
         
-        loops = playLoopUseCase.loadAll()
-                
-        // Auto-select first loop if none selected
-        if selectedLoopID == nil, let firstLoop = loops.first {
-            selectedLoopID = firstLoop.id
+        do {
+            loops = try await playLoopUseCase.loadAll()
+            
+            // Auto-select first loop if none selected
+            if selectedLoopID == nil, let firstLoop = loops.first {
+                selectedLoopID = firstLoop.id
+            }
+            
+        } catch {
+            errorMessage = error.localizedDescription
+            print("Failed to load loops: \(error)")
         }
+                        
     }
 
     
     func loadDemoLoop() {
-        // Force reload to pick up bundled demo loop
-        loadLoops()
-        
         if let demoLoop = loops.first(where: { $0.name.contains("metronome") }) {
             selectedLoopID = demoLoop.id
+            playSelectedLoop()
         }
     }
     
@@ -172,16 +182,26 @@ final class LoopPlayerViewModel: ObservableObject {
         let input = PlayLoopInput(loop: loop, tempo: tempo)
         switch playLoopUseCase.play(input: input) {
         case .success:
-            isPlaying = true
-            errorMessage = nil
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.isPlaying = true
+                self.errorMessage = nil
+            }
         case .failure(let error):
-            isPlaying = false
-            errorMessage = error.localizedDescription
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.isPlaying = false
+                self.errorMessage = error.localizedDescription
+            }
         }
     }
     
     func stop() {
-        playLoopUseCase.stop()
-        isPlaying = false
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            isPlaying = false
+            playLoopUseCase.stop()
+        }
     }
 }
+

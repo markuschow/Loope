@@ -8,29 +8,6 @@
 import XCTest
 @testable import Loope
 
-final class MockAudioPlayer: AudioPlayer {
-    var lastLoop: Loop?
-    var lastRate: Float?
-    var shouldSucceed: Bool = true
-    var isPlaying: Bool = false
-    
-    func play(loop: Loope.Loop, rate: Float) -> Result<Void, any Error> {
-        lastLoop = loop
-        lastRate = rate
-        isPlaying = true
-        
-        return shouldSucceed ? .success(()) : .failure(AudioEngineError.fileNotFound)
-    }
-
-    func setRate(_ rate: Float) {
-        lastRate = rate
-    }
-    
-    func stop() {
-        isPlaying = false
-    }
-}
-
 @MainActor
 final class PlayLoopUseCaseTests: XCTestCase {
     var useCase: PlayLoopUseCase!
@@ -39,7 +16,9 @@ final class PlayLoopUseCaseTests: XCTestCase {
     override func setUp() {
         super.setUp()
         mockPlayer = MockAudioPlayer()
-        useCase = PlayLoopUseCaseImpl(audioPlayer: mockPlayer)
+        useCase = PlayLoopUseCaseImpl(audioPlayer: mockPlayer,
+                                      tempoProcessor: TempoProcessor(),
+                                      loopRepository: FileLoopRepository())
         
     }
     
