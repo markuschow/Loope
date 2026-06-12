@@ -18,7 +18,7 @@ A macOS audio loop demo app built with **Clean Architecture**, **SwiftUI**, and 
 - **SwiftUI** (macOS)
 - **AVAudioEngine** for audio playback
 - **XCTest** for unit tests (Domain & Data layers)
-- **Swift Concurrency** ready (can be extended)
+- **Swift Concurrency** (Async / Await / Combine)
 
 ## How to Run
 1. Build & run on macOS
