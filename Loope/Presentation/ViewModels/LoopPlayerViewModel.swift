@@ -203,5 +203,29 @@ final class LoopPlayerViewModel: ObservableObject {
             playLoopUseCase.stop()
         }
     }
+    
+    func remove(loop: Loop) {
+        guard !loop.isDemoLoop else {
+            errorMessage = "Cannot delete the built-in demo loop."
+            return
+        }
+        
+        guard loop.url.isFileURL else {
+            errorMessage = "Only local files can be deleted."
+            return
+        }
+        
+        if selectedLoopID == loop.id {
+            stop()
+            selectedLoopID = nil
+        }
+        
+        do {
+            try FileManager.default.removeItem(at: loop.url)
+            Task { await self.loadLoops() }
+        } catch {
+            errorMessage = "Failed to delete: \(error.localizedDescription)"
+        }
+    }
 }
 

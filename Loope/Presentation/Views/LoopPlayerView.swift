@@ -41,8 +41,22 @@ struct LoopPlayerView: View {
             .buttonStyle(BorderedButtonStyle())
             
             List(viewModel.loops, selection: $viewModel.selectedLoopID) { loop in
-                Text(loop.name)
-                    .tag(loop.id)
+                HStack {
+                    Text(loop.name)
+                        .tag(loop.id)
+                    
+                    Spacer()
+                    
+                    if !loop.isDemoLoop {
+                        Button(action: { viewModel.remove(loop: loop) }) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                                .font(.system(size: 16))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .help("Delete loop")
+                    }
+                }
             }
             .listStyle(SidebarListStyle())
             
